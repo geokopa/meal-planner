@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>George's Meal Plan v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1a0f;
+    --surface: #162216;
+    --surface2: #1e2e1e;
+    --green: #5aad52;
+    --green2: #3d7a36;
+    --gold: #d4a843;
+    --gold2: #f0c96a;
+    --red: #e05555;
+    --text: #e8efe8;
+    --muted: #7a9a7a;
+    --border: #2a3d2a;
+    --amber: #c8822a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+  }
+
+  header {
+    padding: 36px 20px 28px;
+    text-align: center;
+    background: linear-gradient(160deg, #162216 0%, #0f1a0f 60%);
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::before {
+    content: '';
+    position: absolute;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(90,173,82,0.12) 0%, transparent 70%);
+    top: -100px; left: 50%; transform: translateX(-50%);
+  }
+
+  header h1 {
+    font-family: 'Lora', serif;
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    font-weight: 700;
+    color: var(--green);
+    position: relative;
+    letter-spacing: -0.3px;
+  }
+
+  header p { color: var(--muted); font-size: 0.82rem; margin-top: 6px; position: relative; }
+
+  .d3-banner {
+    background: linear-gradient(90deg, #2a4a1a, #1e3a1a, #2a4a1a);
+    border-bottom: 1px solid var(--green2);
+    padding: 10px 16px;
+    text-align: center;
+    font-size: 0.8rem;
+    color: #a0d090;
+  }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 20px 16px 60px; }
+
+  /* Lab Summary */
+  .lab-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .lab-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+
+  .lab-item.flag { border-color: var(--red); }
+  .lab-item.warn { border-color: var(--gold); }
+  .lab-item.ok { border-color: var(--green2); }
+
+  .lab-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 3px; }
+  .lab-val { font-family: 'Lora', serif; font-size: 1.05rem; font-weight: 700; }
+  .lab-item.flag .lab-val { color: var(--red); }
+  .lab-item.warn .lab-val { color: var(--gold2); }
+  .lab-item.ok .lab-val { color: var(--green); }
+  .lab-note { font-size: 0.68rem; color: var(--muted); margin-top: 2px; line-height: 1.3; }
+
+  /* Fridge Panel */
+  .fridge-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-bottom: 20px;
+  }
+
+  .fridge-box h3 {
+    font-family: 'Lora', serif;
+    color: var(--green);
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+  }
+
+  .tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .tag {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 0.73rem;
+    color: var(--text);
+  }
+
+  .tag.add {
+    border-color: var(--gold);
+    color: var(--gold2);
+    background: rgba(212,168,67,0.08);
+  }
+
+  /* Rules */
+  .rules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .rule {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .rule-icon { font-size: 1.2rem; flex-shrink: 0; }
+  .rule-text { font-size: 0.78rem; color: var(--muted); line-height: 1.45; }
+  .rule-text strong { color: var(--text); display: block; margin-bottom: 2px; font-size: 0.8rem; }
+
+  /* Section header */
+  .sec-head {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    margin: 24px 0 10px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 6px;
+  }
+
+  /* Day cards */
+  .day-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+
+  .day-head {
+    padding: 13px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    user-select: none;
+    transition: background 0.2s;
+  }
+
+  .day-head:hover { background: var(--surface2); }
+
+  .day-head-left { display: flex; align-items: center; gap: 12px; }
+
+  .day-pill {
+    background: var(--green2);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    min-width: 72px;
+    text-align: center;
+  }
+
+  .day-theme {
+    font-family: 'Lora', serif;
+    font-size: 0.95rem;
+    color: var(--text);
+  }
+
+  .day-sub { font-size: 0.73rem; color: var(--muted); }
+
+  .chevron { color: var(--muted); font-size: 0.9rem; transition: transform 0.25s; }
+  .day-card.open .chevron { transform: rotate(180deg); }
+
+  .day-body { display: none; padding: 0 14px 14px; }
+  .day-card.open .day-body { display: block; }
+
+  /* Meals */
+  .meal-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .meal {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 13px;
+  }
+
+  .meal-time {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.9px;
+    color: var(--green);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .meal-time.night { color: #7080c0; }
+  .meal-time.snack { color: var(--gold); }
+
+  .meal-name {
+    font-family: 'Lora', serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+
+  .meal-desc {
+    font-size: 0.75rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .meal-desc em {
+    font-style: normal;
+    color: #a0c090;
+  }
+
+  .bread-tag {
+    display: inline-block;
+    background: rgba(212,168,67,0.15);
+    border: 1px solid rgba(212,168,67,0.4);
+    color: var(--gold2);
+    font-size: 0.62rem;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-top: 5px;
+    font-weight: 500;
+  }
+
+  .macro-bar {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    font-size: 0.71rem;
+    color: var(--muted);
+  }
+
+  .macro-bar strong { color: var(--green); }
+
+  /* Yogurt box */
+  .yogurt-box {
+    background: var(--surface);
+    border: 1px solid #3a4a6a;
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-bottom: 20px;
+  }
+
+  .yogurt-box h3 {
+    font-family: 'Lora', serif;
+    color: #a0b0e0;
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+  }
+
+  .combos { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px; }
+
+  .combo {
+    background: var(--bg);
+    border: 1px solid #2a3a5a;
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+
+  .combo-name { font-size: 0.8rem; font-weight: 600; color: #c0cfff; margin-bottom: 3px; }
+  .combo-desc { font-size: 0.73rem; color: var(--muted); line-height: 1.4; }
+
+  /* Tips */
+  .tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .tip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+
+  .tip h4 { font-size: 0.82rem; color: var(--green); margin-bottom: 5px; font-family: 'Lora', serif; }
+  .tip p { font-size: 0.75rem; color: var(--muted); line-height: 1.5; }
+
+  footer {
+    text-align: center;
+    padding: 20px;
+    color: var(--muted);
+    font-size: 0.72rem;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🥗 George's Meal Plan — Version 2</h1>
+  <p>Built around your fridge · NAFLD-focused · March 2026</p>
+</header>
+
+<div class="d3-banner">✅ Vitamin D3 50,000 IU/week × 4 weeks — prescribed. No food adjustments needed for D. Follow-up labs in 4–6 weeks.</div>
+
+<div class="container">
+
+  <div class="sec-head">📊 Your Labs — What We're Fixing</div>
+  <div class="lab-grid">
+    <div class="lab-item flag"><div class="lab-label">ALT (Liver)</div><div class="lab-val">87 ↑</div><div class="lab-note">High — target &lt;44. Primary focus.</div></div>
+    <div class="lab-item flag"><div class="lab-label">AST (Liver)</div><div class="lab-val">49 ↑</div><div class="lab-note">High — target &lt;40. Reducing liver fat fixes both.</div></div>
+    <div class="lab-item warn"><div class="lab-label">HDL Cholesterol</div><div class="lab-val">44 ↓</div><div class="lab-note">Dropped from 55. Add avocado + walnuts daily.</div></div>
+    <div class="lab-item warn"><div class="lab-label">Vitamin D</div><div class="lab-val">25.3</div><div class="lab-note">Insufficiency. Rx 50k IU/week covers this ✅</div></div>
+    <div class="lab-item warn"><div class="lab-label">HbA1c</div><div class="lab-val">5.5</div><div class="lab-note">Top of normal. Limit refined carbs + sugar.</div></div>
+    <div class="lab-item ok"><div class="lab-label">B12</div><div class="lab-val">301</div><div class="lab-note">Normal but dropped. Eggs + salmon maintain it.</div></div>
+  </div>
+
+  <!-- Fridge -->
+  <div class="sec-head">🧊 Your Ingredients</div>
+  <div class="fridge-box">
+    <h3>✅ What You Have — Already Good</h3>
+    <div class="tag-row" style="margin-bottom:10px">
+      <span class="tag">🥬 Spring Mix</span><span class="tag">🥕 Carrots</span><span class="tag">🍅 Tomatoes</span><span class="tag">🥒 Cucumber</span>
+      <span class="tag">🍗 Chicken</span><span class="tag">🐟 Salmon</span><span class="tag">🫘 Beans</span><span class="tag">🍚 Rice</span>
+      <span class="tag">🌾 Quinoa</span><span class="tag">🥚 Eggs</span><span class="tag">🫓 Tortilla</span><span class="tag">🧀 Feta</span>
+      <span class="tag">🍋 Lemon</span><span class="tag">🍎 Apple</span><span class="tag">🍌 Banana</span><span class="tag">🍊 Orange/Tangerine</span>
+      <span class="tag">🫐 Blueberries</span><span class="tag">🍓 Strawberries</span><span class="tag">🥛 Greek Yogurt</span>
+      <span class="tag">🥭 Dried Mango (no sugar)</span><span class="tag">🍫 Dark Chocolate</span><span class="tag">🍯 Honey</span>
+    </div>
+    <h3 style="margin-top:12px">➕ Recommended Additions (short shopping list)</h3>
+    <div class="tag-row">
+      <span class="tag add">🥑 Avocado — liver superfood</span>
+      <span class="tag add">🌰 Walnuts — #1 nut for NAFLD</span>
+      <span class="tag add">🌰 Almonds — daily snack</span>
+      <span class="tag add">🥦 Broccoli — liver detox</span>
+      <span class="tag add">🍠 Sweet Potato — better carb</span>
+      <span class="tag add">🫘 Hummus — with your carrots/cucumber</span>
+      <span class="tag add">🐟 Canned Tuna/Sardines — omega-3</span>
+      <span class="tag add">🫛 Edamame (frozen) — reduces liver fat clinically</span>
+      <span class="tag add">🍞 Sourdough/Rye Bread — your bread fix</span>
+      <span class="tag add">🫒 Olive Oil — primary cooking fat</span>
+      <span class="tag add">🌿 Spinach (frozen ok) — iron + folate</span>
+    </div>
+  </div>
+
+  <!-- Yogurt box -->
+  <div class="sec-head">🥛 Greek Yogurt — What to Put In It</div>
+  <div class="yogurt-box">
+    <h3>Mix-In Combos (all from your pantry + additions)</h3>
+    <div class="combos">
+      <div class="combo"><div class="combo-name">🫐 Classic Berry</div><div class="combo-desc">Blueberries + strawberries + drizzle of honey. Most antioxidants per bite. Best breakfast or night snack.</div></div>
+      <div class="combo"><div class="combo-name">🍫 Chocolate Fix</div><div class="combo-desc">1 tsp honey + a few dark chocolate chips or crumbled dark chocolate. Kills sweet cravings at night.</div></div>
+      <div class="combo"><div class="combo-name">🥭 Tropical</div><div class="combo-desc">Small handful dried mango (no added sugar) + a few almonds. Chewy + creamy texture combo.</div></div>
+      <div class="combo"><div class="combo-name">🍌 Banana Honey</div><div class="combo-desc">½ sliced banana + ½ tsp honey + a pinch of cinnamon. Cinnamon improves insulin sensitivity.</div></div>
+      <div class="combo"><div class="combo-name">🥒 Savory Tzatziki</div><div class="combo-desc">Cucumber + feta + lemon juice + olive oil (no honey). Use as a dip for carrots or cucumber slices.</div></div>
+      <div class="combo"><div class="combo-name">🌰 Crunch Bowl</div><div class="combo-desc">Walnuts + almonds + blueberries + drizzle of honey. High protein + omega-3 + antioxidants. Best morning combo.</div></div>
+    </div>
+  </div>
+
+  <!-- Day Cards -->
+  <div class="sec-head">📅 Weekly Plan — Tap to Expand</div>
+
+  <!-- MONDAY -->
+  <div class="day-card open">
+    <div class="day-head" onclick="toggle(this)">
+      <div class="day-head-left">
+        <div class="day-pill">Monday</div>
+        <div><div class="day-theme">Salmon & Quinoa Reset</div><div class="day-sub">~1,950 cal</div></div>
+      </div>
+      <div class="chevron">▾</div>
+    </div>
+    <div class="day-body">
+      <div class="meal-grid">
+        <div class="meal">
+          <div class="meal-time">☀️ Breakfast</div>
+          <div class="meal-name">2-Egg Scramble + Sourdough Toast</div>
+          <div class="meal-desc">2 eggs scrambled with spring mix + tomato in olive oil. 1 slice sourdough toast. <em>Espresso or green tea.</em> Choline in eggs directly helps liver fat processing.</div>
+          <div class="bread-tag">🍞 Bread here — not at night</div>
+        </div>
+        <div class="meal">
+          <div class="meal-time snack">🍎 Morning Snack</div>
+          <div class="meal-name">Apple + 10 Walnuts</div>
+          <div class="meal-desc">Your apple from the fridge + 10 walnuts. Walnuts are the <em>#1 research-backed nut for NAFLD</em> — eat them daily.</div>
+        </div>
+        <div class="meal">
+          <div class="meal-time">☀️ Lunch</div>
+          <div class="meal-name">Salmon & Quinoa Bowl</div>
+          <div class="meal-desc">Pan-sear 5oz salmon in olive oil. Serve over ½ cup quinoa with spring mix, cucumber, tomato, feta, lemon dressing. <em>Omega-3 + complete protein.</em></div>
+        </div>
+        <div class="meal">
+          <div class="meal-time snack">🌤 Afternoon Snack</div>
+          <div class="meal-name">Hummus + Carrots/Cucumber</div>
+          <div class="meal-desc">3 tbsp hummus with cut carrots and cucumber sticks. Filling, anti-inflammatory, zero liver stress.</div>
+        </div>
+        <div class="meal">
+          <div class="meal-time">🌙 Dinner</div>
+          <div class="meal-name">Baked Chicken Thighs + Roasted Broccoli + Beans</div>
+          <div class="meal-desc">2 chicken thighs (skin off) with garlic, lemon, olive oil. Roasted broccoli on the side. ½ cup white beans. <em>No bread at dinner.</em></div>
+        </div>
+        <div class="meal">
+          <div class="meal-time night">🌛 Night Craving Fix</div>
+          <div class="meal-name">Greek Yogurt + Blueberries + Honey</div>
+          <div class="meal-desc">½ cup Greek yogurt + blueberries + ½ tsp honey. Have this ready by 9pm before cravings peak. <em>Stops the bread urge.</em></div>
+        </div>
+      </div>
+      <div class="macro-bar"><strong>~1,950 cal</strong> · ~145g protein · ~60g fat · ~165g carbs (all complex)</div>
+    </div>
+  </div>
+
+  <!-- TUESDAY -->
+  <div class="day-card">
+    <div class="day-head" onclick="toggle(this)">
+      <div class="day-head-left">
+        <div class="day-pill">Tuesday</div>
+        <div><div class="day-theme">Chicken Power Day</div><div class="day-sub">~1,900 cal</div></div>
+      </div>
+      <div class="chevron">▾</div>
+    </div>
+    <div class="day-body">
+      <div class="meal-grid">
+        <div class="meal">
+          <div class="meal-time">☀️ Breakfast</div>
+          <div class="meal-name">Veggie Egg Wrap</div>
+          <div class="meal-desc">1 whole wheat tortilla + 2 scrambled eggs + spring mix + tomato + feta + squeeze of lemon. <em>Espresso or green tea.</em> More filling than toast and lower glycemic.</div>
+          <div class="bread-tag">🫓 Tortilla counts as your bread — done for the day</div>
+        </div>
+        <div class="meal">
+          <div class="meal-time snack">🍎 Morning Snack</div>
+          <div class="meal-name">Orange + Almonds</div>
+          <div class="meal-desc">1 orange (vitamin C boosts iron absorption from your eggs) + 12 raw almonds. Quick and portable.</div>
+        </div>
+        <div class="meal">
+          <div class="meal-time">☀️ Lunch</div>
+          <div class="meal-name">Grilled Chicken & Spring Mix Salad</div>
+          <div class="meal-desc">5oz grilled chicken sliced over spring mix, shredded carrots, cucumber, tomato, feta, olive oil + lemon dressing. Add ½ cup beans for extra fiber.</div>
+        </div>
+        <div class="meal">
+          <div class="meal-time snack">🌤 Afternoon Snack</div>
+          <div class="meal-name">Banana + Dark Chocolate (2 squares)</div>
+          <div class="meal-desc">1 banana + 2 squares of your dark chocolate. Natural sweetness + antioxidants. 70%+ dark chocolate is liver-neutral.</div>
+        </div>
+        <div class="meal">
+          <div class="meal-time">🌙 Dinner</div>
+          <div class="meal-name">Salmon over Rice + Cucumber Salad</div>
+          <div class="meal-desc">5oz baked or pan-seared salmon over ½ cup rice. Simple cucumber + tomato + lemon + olive oil salad on the side. <em>Salmon twice weekly minimum for your liver.</em></div>
+        </div>
+        <div class="meal">
+          <div class="meal-time night">🌛 Night Craving Fix</div>
+          <div class="meal-name">2 Hard-Boiled Eggs + Carrots</div>
+          <div class="meal-desc">Prep these in advance. Protein kills the craving hard. Carrots give you the crunchy satisfaction. Dip in a little hummus if needed.</div>
+        </div>
+      </div>
+      <div class="macro-bar"><strong>~1,900 cal</strong> · ~150g protein · ~55g fat · ~160g carbs</div>
+    </div>
+  </div>
+
+  <!-- WEDNESDAY -->
+  <div class="day-card">
+    <div class="day-head" onclick="toggle(this)">
+      <div class="day-head-left">
+        <div class="day-pill">Wednesday</div>
+        <div><div class="day-theme">Midweek Liver Reset</div><div class="day-sub">~1,850 cal</div></div>
+      </div>
+      <div class="chevron">▾</div>
+    </div>
+    <div class="day-body">
+      <div class="meal-grid">
+        <div class="meal">
+          <div class="meal-time">☀️ Breakfast</div>
+          <div class="meal-name">Avocado Toast + Fried Egg</div>
+          <div class="meal-desc">1 slice sourdough/rye + ½ avocado smashed with lemon + 1 fried egg + tomato slices + pinch of feta. <em>Green tea.</em> Healthy fat from avocado raises your HDL.</div>
+          <div class="bread-tag">🍞 Bread here — not at night</div>
+        </div>
+        <div class="meal">
+          <div class="meal-time snack">🍎 Morning Snack</div>
+          <div class="meal-name">Tangerine + Walnuts</div>
+          <div class="meal-desc">2 tangerines + 10 walnuts. Easy to peel, portable, and gives you a second daily dose of liver-supporting walnuts.</div>
+        </div>
+        <div class="meal">
+          <div class="meal-time">☀️ Lunch</div>
+          <div class="meal-name">Chicken Quinoa Bowl (Meal Prep)</div>
+          <div class="meal-desc">Batch-cooked chicken breast sliced over quinoa + spring mix + cucumber + tomato + feta + olive oil lemon dressing. This is your go-to lunch — make extra on Sunday.</div>
+        </div>
+        <div class="meal">
+          <div class="meal-time snack">🌤 Afternoon Snack</div>
+          <div class="meal-name">Greek Yogurt + Strawberries + Almonds</div>
+          <div class="meal-desc">½ cup Greek yogurt with sliced strawberries + 8 almonds. High protein afternoon reset.</div>
+        </div>
+        <div class="meal">
+          <div class="meal-time">🌙 Dinner</div>
+          <div class="meal-name">Salmon Tacos (2 tortillas)</div>
+          <div class="meal-desc">2 small tortillas with flaked baked salmon, spring mix, tomato, cucumber, squeeze of lemon, tiny dollop of sour cream. Feta optional. <em>Keep sour cream to 1 tbsp — it's fine in small amounts.</em></div>
+        </div>
+        <div class="meal">
+          <div class="meal-time night">🌛 Night Craving Fix</div>
+          <div class="meal-name">Dark Chocolate + Green Tea</div>
+          <div class="meal-desc">3 squares dark chocolate + a cup of green tea. Green tea has catechins that <em>actively reduce liver fat.</em> Make this your wind-down ritual.</div>
+        </div>
+      </div>
+      <div class="macro-bar"><strong>~1,850 cal</strong> · ~135g protein · ~62g fat · ~155g carbs</div>
+    </div>
+  </div>
+
+  <!-- THURSDAY -->
+  <div class="day-card">
+    <div class="day-head" onclick="toggle(this)">
+      <div class="day-head-left">
+        <div class="day-pill">Thursday</div>
+        <div><div class="day-theme">Egg & Chicken Heavy</div><div class="day-sub">~2,000 cal</div></div>
+      </div>
+      <div class="chevron">▾</div>
+    </div>
+    <div class="day-body">
+      <div class="meal-grid">
+        <div class="meal">
+          <div class="meal-time">☀️ Breakfast</div>
+          <div class="meal-name">3-Egg Feta Omelette + Toast</div>
+          <div class="meal-desc">3-egg omelette with feta + tomato + spring mix, cooked in olive oil. 1 slice sourdough. <em>Espresso.</em> 3 eggs = your best B12 source (trending down in your labs).</div>
+          <div class="bread-tag">🍞 Bread here — not at night</div>
+        </div>
+        <div class="meal">
+          <div class="meal-time snack">🍎 Morning Snack</div>
+          <div class="meal-name">Apple + Almond Butter</div>
+          <div class="meal-desc">1 apple sliced + 1 tbsp almond butter (add to shopping list). Fiber + healthy fat. Keeps insulin level through the morning.</div>
+        </div>
+        <div class="meal">
+          <div class="meal-time">☀️ Lunch</div>
+          <div class="meal-name">Tuna Bean Salad</div>
+          <div class="meal-desc">Canned tuna in olive oil + white beans + spring mix + cucumber + tomato + lemon. No dressing needed beyond the olive oil from the tuna. <em>Add to shopping list: canned tuna.</em></div>
+        </div>
+        <div class="meal">
+          <div class="meal-time snack">🌤 Afternoon Snack</div>
+          <div class="meal-name">Edamame (salted)</div>
+          <div class="meal-desc">1 cup shelled edamame. Isoflavones in edamame are <em>clinically shown to reduce liver fat in NAFLD studies.</em> Add to your regular rotation.</div>
+        </div>
+        <div class="meal">
+          <div class="meal-time">🌙 Dinner</div>
+          <div class="meal-name">Chicken Breast + Sweet Potato + Broccoli</div>
+          <div class="meal-desc">5oz baked chicken breast (marinate in lemon + olive oil + garlic). 1 small roasted sweet potato. Roasted broccoli with olive oil. Clean, complete, no carb spike.</div>
+        </div>
+        <div class="meal">
+          <div class="meal-time night">🌛 Night Craving Fix</div>
+          <div class="meal-name">Greek Yogurt + Dried Mango + Honey</div>
+          <div class="meal-desc">½ cup yogurt + small handful dried mango (your no-sugar-added kind) + ½ tsp honey. Chewy + creamy = very satisfying. Keep it to a small handful of mango.</div>
+        </div>
+      </div>
+      <div class="macro-bar"><strong>~2,000 cal</strong> · ~155g protein · ~58g fat · ~165g carbs</div>
+    </div>
+  </div>
+
+  <!-- FRIDAY -->
+  <div class="day-card">
+    <div class="day-head" onclick="toggle(this)">
+      <div class="day-head-left">
+        <div class="day-pill">Friday</div>
+        <div><div class="day-theme">Feel-Good Friday</div><div class="day-sub">~1,950 cal</div></div>
+      </div>
+      <div class="chevron">▾</div>
+    </div>
+    <div class="day-body">
+      <div class="meal-grid">
+        <div class="meal">
+          <div class="meal-time">☀️ Breakfast</div>
+          <div class="meal-name">Smoked Salmon Tortilla Wrap</div>
+          <div class="meal-desc">1 whole wheat tortilla + 2oz smoked salmon + cucumber + spring mix + lemon squeeze + tiny bit of sour cream or feta as the spread. Omega-3 + vitamin D morning hit.</div>
+          <div class="bread-tag">🫓 Tortilla counts — done for the day</div>
+        </div>
+        <div class="meal">
+          <div class="meal-time snack">🍎 Morning Snack</div>
+          <div class="meal-name">Blueberries + Walnuts</div>
+          <div class="meal-desc">½ cup blueberries + 10 walnuts. Blueberries have pterostilbene, one of the most studied compounds for reducing liver inflammation.</div>
+        </div>
+        <div class="meal">
+          <div class="meal-time">☀️ Lunch</div>
+          <div class="meal-name">Chicken & Avocado Rice Bowl</div>
+          <div class="meal-desc">Sliced grilled chicken over ½ cup rice + ½ avocado + spring mix + tomato + cucumber + lemon olive oil dressing + feta. This is your Friday treat bowl.</div>
+        </div>
+        <div class="meal">
+          <div class="meal-time snack">🌤 Afternoon Snack</div>
+          <div class="meal-name">Strawberries + Dark Chocolate</div>
+          <div class="meal-desc">Cup of strawberries + 2 squares dark chocolate. Friday afternoon reward that's still on plan.</div>
+        </div>
+        <div class="meal">
+          <div class="meal-time">🌙 Dinner</div>
+          <div class="meal-name">Pan-Seared Salmon + Beans + Salad</div>
+          <div class="meal-desc">6oz salmon fillet seared in olive oil + garlic. ½ cup beans on the side (warm with olive oil + lemon). Big spring mix salad with carrots, tomato, cucumber, feta. No starch tonight.</div>
+        </div>
+        <div class="meal">
+          <div class="meal-time night">🌛 Night Craving Fix</div>
+          <div class="meal-name">Greek Yogurt + Banana + Cinnamon</div>
+          <div class="meal-desc">½ cup yogurt + ½ sliced banana + pinch of cinnamon. Cinnamon lowers post-meal blood sugar spikes. Friday night sorted.</div>
+        </div>
+      </div>
+      <div class="macro-bar"><strong>~1,950 cal</strong> · ~145g protein · ~65g fat · ~160g carbs</div>
+    </div>
+  </div>
+
+  <!-- SATURDAY -->
+  <div class="day-card">
+    <div class="day-head" onclick="toggle(this)">
+      <div class="day-head-left">
+        <div class="day-pill">Saturday</div>
+        <div><div class="day-theme">Weekend Flex — Still On Plan</div><div class="day-sub">~2,050 cal</div></div>
+      </div>
+      <div class="chevron">▾</div>
+    </div>
+    <div class="day-body">
+      <div class="meal-grid">
+        <div class="meal">
+          <div class="meal-time">☀️ Breakfast (Brunch)</div>
+          <div class="meal-name">Salmon Eggs & Avocado Toast</div>
+          <div class="meal-desc">2 slices sourdough, ½ avocado, 2 poached or fried eggs, 1–2oz smoked salmon on top, capers if you have them, lemon. <em>Weekend treat that earns its place.</em></div>
+          <div class="bread-tag">🍞 2 slices today — it's brunch, it's fine</div>
+        </div>
+        <div class="meal">
+          <div class="meal-time snack">🍎 Mid-Morning</div>
+          <div class="meal-name">Fruit Plate</div>
+          <div class="meal-desc">Orange + tangerine + handful of blueberries. Simple. Vitamin C, antioxidants, fiber. No prep needed.</div>
+        </div>
+        <div class="meal">
+          <div class="meal-time">☀️ Lunch</div>
+          <div class="meal-name">Grilled Chicken Wrap</div>
+          <div class="meal-desc">Tortilla + sliced grilled chicken + spring mix + tomato + cucumber + feta + squeeze lemon + 1 tbsp sour cream. This is a proper satisfying lunch without destroying the plan.</div>
+        </div>
+        <div class="meal">
+          <div class="meal-time snack">🌤 Afternoon</div>
+          <div class="meal-name">Almond Butter + Apple</div>
+          <div class="meal-desc">Sliced apple + 1 tbsp almond butter. Classic Saturday snack.</div>
+        </div>
+        <div class="meal">
+          <div class="meal-time">🌙 Dinner</div>
+          <div class="meal-name">Baked Salmon + Quinoa + Big Salad</div>
+          <div class="meal-desc">6oz baked salmon (garlic + lemon + olive oil). ½ cup quinoa. Large spring mix salad with everything — carrots, cucumber, tomato, feta. This is your best dinner of the week.</div>
+        </div>
+        <div class="meal">
+          <div class="meal-time night">🌛 Night Craving Fix</div>
+          <div class="meal-name">Dark Chocolate + Walnuts + Green Tea</div>
+          <div class="meal-desc">3 squares dark chocolate + 8 walnuts + cup of green tea. Make it feel intentional and indulgent. You earned it.</div>
+        </div>
+      </div>
+      <div class="macro-bar"><strong>~2,050 cal</strong> · ~145g protein · ~70g fat · ~170g carbs</div>
+    </div>
+  </div>
+
+  <!-- SUNDAY -->
+  <div class="day-card">
+    <div class="day-head" onclick="toggle(this)">
+      <div class="day-head-left">
+        <div class="day-pill">Sunday</div>
+        <div><div class="day-theme">Meal Prep Day + Reset</div><div class="day-sub">~1,900 cal</div></div>
+      </div>
+      <div class="chevron">▾</div>
+    </div>
+    <div class="day-body">
+      <div class="meal-grid">
+        <div class="meal">
+          <div class="meal-time">☀️ Breakfast</div>
+          <div class="meal-name">Egg & Bean Breakfast Bowl</div>
+          <div class="meal-desc">2 fried eggs over ½ cup warmed beans + tomato + spring mix + feta + lemon + olive oil drizzle. Skip bread today — the beans are your complex carb. <em>Espresso.</em></div>
+        </div>
+        <div class="meal">
+          <div class="meal-time snack">🍎 Morning</div>
+          <div class="meal-name">Banana + Walnuts</div>
+          <div class="meal-desc">1 banana + 10 walnuts. Potassium from banana is good for blood pressure. Consistent walnut intake is the most evidence-based dietary move for your liver.</div>
+        </div>
+        <div class="meal">
+          <div class="meal-time">☀️ Lunch</div>
+          <div class="meal-name">Chicken & Quinoa (Batch Cook)</div>
+          <div class="meal-desc">Cook a big batch: roast 4–5 chicken breasts + cook 2 cups quinoa. Eat one serving now with spring mix, cucumber, tomato, feta. Refrigerate rest for Mon/Tue/Wed lunches.</div>
+        </div>
+        <div class="meal">
+          <div class="meal-time snack">🌤 Afternoon</div>
+          <div class="meal-name">Greek Yogurt Crunch Bowl</div>
+          <div class="meal-desc">Greek yogurt + blueberries + strawberries + walnuts + drizzle of honey. Most liver-supportive yogurt combo possible.</div>
+        </div>
+        <div class="meal">
+          <div class="meal-time">🌙 Dinner</div>
+          <div class="meal-name">Salmon + Sweet Potato + Broccoli</div>
+          <div class="meal-desc">5oz baked salmon + 1 small roasted sweet potato + broccoli roasted with olive oil and garlic. Clean Sunday dinner that sets up a good Monday.</div>
+        </div>
+        <div class="meal">
+          <div class="meal-time night">🌛 Night Craving Fix</div>
+          <div class="meal-name">Greek Yogurt + Honey + Dark Chocolate</div>
+          <div class="meal-desc">½ cup yogurt + ½ tsp honey + 2 squares crushed dark chocolate stirred in. Feels like dessert. Ends Sunday well. Protein stops late-night hunger all week.</div>
+        </div>
+      </div>
+      <div class="macro-bar"><strong>~1,900 cal</strong> · ~140g protein · ~58g fat · ~175g carbs</div>
+    </div>
+  </div>
+
+  <!-- Tips -->
+  <div class="sec-head">💡 Your Rules — Simple & Clear</div>
+  <div class="tips-grid">
+    <div class="tip">
+      <h4>🍞 Bread Rule</h4>
+      <p>1–2 slices of sourdough/rye OR 1 tortilla per day — always at breakfast. Never at dinner. This single rule has the biggest impact on liver fat and your HbA1c creeping up.</p>
+    </div>
+    <div class="tip">
+      <h4>🐟 Salmon Rule</h4>
+      <p>Aim for salmon 3–4x this week. It's your single best food: omega-3 lowers liver fat, vitamin D supports your prescription, B12 keeps your trending-down levels stable.</p>
+    </div>
+    <div class="tip">
+      <h4>🌰 Walnut Rule</h4>
+      <p>10–14 walnuts daily. Keep a bag at your desk. Multiple clinical trials show walnuts specifically reduce ALT and AST in NAFLD patients. This is low-effort, high-impact.</p>
+    </div>
+    <div class="tip">
+      <h4>☕ Your Drinks</h4>
+      <p>Espresso is fine — 1–2/day, no sugar. Green tea is actively beneficial for your liver (2–3 cups/day is ideal). Water 8–10 cups. Avoid all juice and soda.</p>
+    </div>
+    <div class="tip">
+      <h4>🌙 Night Craving Strategy</h4>
+      <p>Don't fight the craving — have your planned snack ready at 9pm before the urge peaks. Greek yogurt + berries or dark chocolate + walnuts + green tea are your go-to weapons.</p>
+    </div>
+    <div class="tip">
+      <h4>🚫 Hard Avoids</h4>
+      <p>Zero alcohol while ALT/AST elevated. No white bread or sugary drinks. Limit sour cream to 1 tbsp max. Feta is fine — it's low-fat cheese. Rice is okay in ½ cup portions.</p>
+    </div>
+    <div class="tip">
+      <h4>🏃 Movement</h4>
+      <p>30 min brisk walk 5x/week reduces liver fat independently of diet. A walk after dinner is especially powerful for blood sugar and belly fat. Your HbA1c will thank you.</p>
+    </div>
+    <div class="tip">
+      <h4>📅 Sunday Prep</h4>
+      <p>Cook chicken + quinoa in bulk on Sunday. Hard-boil 4 eggs. Cut carrots and cucumber. Portion yogurt. Having food ready removes the moment of weakness that leads to bread at night.</p>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Built around George's actual fridge · Labs from 03/17/2026 · Ordered by Dr. P. Alvarez · Not a substitute for medical advice
+</footer>
+
+<script>
+function toggle(el) {
+  el.parentElement.classList.toggle('open');
+}
+</script>
+</body>
+</html>
